@@ -6,6 +6,10 @@ def show_profile(bot, message):
 
     user = get_user(user_id)
 
+    if not user:
+        bot.send_message(message.chat.id, "Ошибка профиля")
+        return
+
     text = f"""👤 Твой профиль
 
 ID: {user[0]}
@@ -15,7 +19,7 @@ ID: {user[0]}
 Характеристика: 0"""
 
     if user[4]:
-        text += f"\n\nПара: {user[4]}"
+        text += f"\nПара: {user[4]}"
 
     text += f"\nКлан: {user[3]}"
 
