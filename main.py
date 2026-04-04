@@ -36,7 +36,7 @@ def handler(message):
     text = message.text
     text_low = text.lower()
 
-    print("TEXT:", text)  # DEBUG
+    print("TEXT:", text)
 
     # ===== РЕСЕТ БД =====
     if text_low == "ресет":
@@ -47,7 +47,7 @@ def handler(message):
             bot.send_message(message.chat.id, "❌ Нет доступа")
         return
 
-    # ===== КНОПКИ (ЖЁСТКИЙ ФИКС) =====
+    # ===== КНОПКИ =====
     if text in ["👤 Профиль", "🎁 Бонус"]:
         menu.handle_buttons(bot, message)
         return
@@ -67,11 +67,11 @@ def handler(message):
         bot.send_message(message.chat.id, random.choice(phrases))
         return
 
-    # ===== КОМАНДЫ (ФИКС КНОПОК) =====
+    # ===== КОМАНДЫ =====
     if text_low in ["профиль", "👤 профиль"]:
         profile.show_profile(bot, message)
 
-    elif text_low in ["баланс"]:
+    elif text_low == "баланс":
         economy.show_balance(bot, message)
 
     elif text_low in ["бонус", "🎁 бонус"]:
@@ -89,26 +89,7 @@ def handler(message):
 
 print("Бот запущен...")
 
-# фикс 409 ошибки
-bot.remove_webhook()
-
-while True:
-    try:
-        bot.infinity_polling(skip_pending=True)
-    except Exception as e:
-        print("Ошибка:", e)
-        time.sleep(5)        elif "помощь" in text_low:
-            help_menu.send_help(bot, message.chat.id)
-
-        elif "команды" in text_low:
-            help_menu.send_commands(bot, message.chat.id)
-
-        else:
-            return
-
-
-print("Бот запущен...")
-
+# фикс 409
 bot.remove_webhook()
 
 while True:
