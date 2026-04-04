@@ -7,33 +7,31 @@ from config import USE_POSTGRES
 if USE_POSTGRES:
     conn = psycopg.connect(os.environ.get("DATABASE_URL"))
     cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        user_id BIGINT PRIMARY KEY,
-        balance INT DEFAULT 500,
-        cookies INT DEFAULT 2000,
-        clan TEXT DEFAULT 'отсутствует',
-        partner TEXT DEFAULT NULL,
-        last_bonus BIGINT DEFAULT 0
-    )
-    """)
-    conn.commit()
 else:
     conn = sqlite3.connect("funya.db", check_same_thread=False)
     cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY,
-        balance INTEGER DEFAULT 500,
-        cookies INTEGER DEFAULT 2000,
-        clan TEXT DEFAULT 'отсутствует',
-        partner TEXT DEFAULT NULL,
-        last_bonus INTEGER DEFAULT 0
-    )
-    """)
+
+# ===== СОЗДАНИЕ ТАБЛИЦЫ =====
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id BIGINT PRIMARY KEY,
+    balance INT DEFAULT 500,
+    cookies INT DEFAULT 2000,
+    clan TEXT DEFAULT 'отсутствует',
+    partner TEXT DEFAULT NULL
+)
+""")
+conn.commit()
+
+# ===== ДОБАВЛЕНИЕ КОЛОНКИ (ЕСЛИ НЕТ) =====
+try:
+    cursor.execute("ALTER TABLE users ADD COLUMN last_bonus BIGINT DEFAULT 0")
     conn.commit()
+except:
+    pass  # если колонка уже есть — просто игнорируем
 
 
+# ===== ФУНКЦИИ =====
 def add_user(user_id):
     if USE_POSTGRES:
         cursor.execute(
