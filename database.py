@@ -1,9 +1,12 @@
 import os
 import psycopg2
 
-conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+conn = psycopg2.connect(DATABASE_URL, sslmode="require")
 conn.autocommit = True
 cursor = conn.cursor()
+
 
 def init_db():
     cursor.execute("""
