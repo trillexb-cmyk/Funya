@@ -52,8 +52,14 @@ def handler(message):
 
     # кнопки
     else:
-        menu.handle_buttons(bot, message)
+        if message.text:
+            menu.handle_buttons(bot, message)
 
 
 print("Бот запущен...")
-bot.infinity_polling()
+
+# 🔥 ФИКС 409 ОШИБКИ
+bot.remove_webhook()
+
+# запуск
+bot.infinity_polling(skip_pending=True)
