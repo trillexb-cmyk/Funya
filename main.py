@@ -2,16 +2,16 @@ import telebot
 import time
 import random
 
-from config import TOKEN
+from config import TOKEN, ADMIN_ID
 
 import handlers.profile as profile
 import handlers.economy as economy
 import handlers.menu as menu
 import handlers.help_menu as help_menu
 
-bot = telebot.TeleBot(TOKEN)
+from database import reset_db
 
-start_time = time.time()
+bot = telebot.TeleBot(TOKEN)
 
 
 # ===== СТАРТ =====
@@ -36,80 +36,68 @@ def handler(message):
     text = message.text
     text_low = text.lower()
 
-    # =========================
-    # 🔹 ЛС
-    # =========================
-    if message.chat.type == "private":
+    print("TEXT:", text)  # DEBUG
 
-        # кнопки
-        if text in [
-            "👤 Профиль", "🎁 Бонус",
-            "⚒ Кузня", "🛒 Магазин", "👥 Команды",
-            "🏆 Турниры",
-            "💬 Чаты", "👥 Кланы",
-            "🎮 Игры",
-            "📜 Политика", "📞 Связь"
-        ]:
-            menu.handle_buttons(bot, message)
-            return
+    # ===== РЕСЕТ БД =====
+    if text_low == "ресет":
+        if message.from_user.id == ADMIN_ID:
+            reset_db()
+            bot.send_message(message.chat.id, "✅ База данных очищена")
+        else:
+            bot.send_message(message.chat.id, "❌ Нет доступа")
+        return
 
-        # команды текстом
-        if "профиль" in text_low:
-            profile.show_profile(bot, message)
+    # ===== КНОПКИ (ЖЁСТКИЙ ФИКС) =====
+    if text in ["👤 Профиль", "🎁 Бонус"]:
+        menu.handle_buttons(bot, message)
+        return
 
-        elif "баланс" in text_low:
-            economy.show_balance(bot, message)
+    # ===== УБИРАЕМ "ФУНЯ" =====
+    if text_low.startswith("фуня"):
+        text_low = text_low.replace("фуня", "").strip()
 
-        elif "бонус" in text_low:
-            economy.get_bonus(bot, message)
+    # ===== ПРОСТО "ФУНЯ" =====
+    if text_low == "фуня":
+        phrases = [
+            "👀 Я тут",
+            "😏 Чего звал?",
+            "🤖 На связи",
+            "🔥 Фуня в деле"
+        ]
+        bot.send_message(message.chat.id, random.choice(phrases))
+        return
 
-        elif "помощь" in text_low:
-            help_menu.send_help(bot, message.chat.id)
+    # ===== КОМАНДЫ (ФИКС КНОПОК) =====
+    if text_low in ["профиль", "👤 профиль"]:
+        profile.show_profile(bot, message)
 
-        elif "команды" in text_low:
-            help_menu.send_commands(bot, message.chat.id)
+    elif text_low in ["баланс"]:
+        economy.show_balance(bot, message)
 
+    elif text_low in ["бонус", "🎁 бонус"]:
+        economy.get_bonus(bot, message)
+
+    elif "помощь" in text_low:
+        help_menu.send_help(bot, message.chat.id)
+
+    elif "команды" in text_low:
+        help_menu.send_commands(bot, message.chat.id)
+
+    else:
         return
 
 
-    # =========================
-    # 🔹 ЧАТЫ
-    # =========================
-    else:
+print("Бот запущен...")
 
-        original_text = text_low
+# фикс 409 ошибки
+bot.remove_webhook()
 
-        # кнопки (если вдруг пришли)
-        if text in ["👤 Профиль", "🎁 Бонус"]:
-            menu.handle_buttons(bot, message)
-            return
-
-        # убираем "фуня"
-        if text_low.startswith("фуня"):
-            text_low = text_low.replace("фуня", "").strip()
-
-        # просто "фуня"
-        if original_text.strip() == "фуня":
-            phrases = [
-                "👀 Я тут",
-                "😏 Чего звал?",
-                "🤖 На связи",
-                "🔥 Фуня в деле"
-            ]
-            bot.send_message(message.chat.id, random.choice(phrases))
-            return
-
-        # команды
-        if "профиль" in text_low:
-            profile.show_profile(bot, message)
-
-        elif "баланс" in text_low:
-            economy.show_balance(bot, message)
-
-        elif "бонус" in text_low:
-            economy.get_bonus(bot, message)
-
-        elif "помощь" in text_low:
+while True:
+    try:
+        bot.infinity_polling(skip_pending=True)
+    except Exception as e:
+        print("Ошибка:", e)
+        time.sleep(5)        elif "помощь" in text_low:
             help_menu.send_help(bot, message.chat.id)
 
         elif "команды" in text_low:
