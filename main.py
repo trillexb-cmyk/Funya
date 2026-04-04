@@ -21,7 +21,7 @@ def start(msg):
         menu.send_menu(bot, msg.chat.id)
 
 
-# ===== CALLBACK КНОПКИ =====
+# ===== CALLBACK =====
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     help_menu.handle_callbacks(bot, call)
@@ -53,7 +53,7 @@ def handler(message):
             menu.handle_buttons(bot, message)
             return
 
-        # команды
+        # команды текстом
         if "профиль" in text_low:
             profile.show_profile(bot, message)
 
@@ -79,7 +79,12 @@ def handler(message):
 
         original_text = text_low
 
-        # реакция на "фуня"
+        # кнопки (если вдруг пришли)
+        if text in ["👤 Профиль", "🎁 Бонус"]:
+            menu.handle_buttons(bot, message)
+            return
+
+        # убираем "фуня"
         if text_low.startswith("фуня"):
             text_low = text_low.replace("фуня", "").strip()
 
@@ -89,10 +94,7 @@ def handler(message):
                 "👀 Я тут",
                 "😏 Чего звал?",
                 "🤖 На связи",
-                "🔥 Фуня в деле",
-                "😎 Слушаю тебя",
-                "💭 Что нужно?",
-                "⚡ Быстро говори"
+                "🔥 Фуня в деле"
             ]
             bot.send_message(message.chat.id, random.choice(phrases))
             return
