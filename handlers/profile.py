@@ -1,17 +1,15 @@
-from database import get_user, create_user
+from database import get_user, add_user
 
 
 def show_profile(bot, message):
     user_id = message.from_user.id
 
-    # получаем или создаём пользователя
     user = get_user(user_id)
 
     if not user:
-        create_user(user_id)
+        add_user(user_id)
         user = get_user(user_id)
 
-    # данные
     balance = user[1]
     cookies = user[2]
     clan = user[3]
@@ -28,9 +26,6 @@ def show_profile(bot, message):
     if partner:
         text += f"💑 Пара: {partner}\n"
 
-    if clan:
-        text += f"🏰 Клан: {clan}\n"
-    else:
-        text += f"🏰 Клан: отсутствует\n"
+    text += f"🏰 Клан: {clan}\n"
 
     bot.send_message(message.chat.id, text)
