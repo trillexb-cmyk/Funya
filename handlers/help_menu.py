@@ -1,68 +1,90 @@
 from telebot import types
 
 
-# ===== ПОМОЩЬ =====
+# ===== ГЛАВНОЕ МЕНЮ ПОМОЩИ =====
 def send_help(bot, chat_id):
     markup = types.InlineKeyboardMarkup()
 
-    markup.add(
-        types.InlineKeyboardButton("📖 Команды", callback_data="cmds")
-    )
+    markup.add(types.InlineKeyboardButton("💰 Экономика", callback_data="help_economy"))
+    markup.add(types.InlineKeyboardButton("🎭 Действия", callback_data="help_actions"))
+    markup.add(types.InlineKeyboardButton("💑 Отношения", callback_data="help_love"))
+    markup.add(types.InlineKeyboardButton("👥 Кланы", callback_data="help_clans"))
 
     bot.send_message(
         chat_id,
-        "🤖 Я Фуня\n\nВыбери, что тебя интересует 👇",
+        "📚 Помощь\n\nВыбери раздел:",
         reply_markup=markup
     )
 
 
-# ===== РАЗДЕЛЫ =====
+# ===== КОМАНДЫ =====
 def send_commands(bot, chat_id):
-    markup = types.InlineKeyboardMarkup()
-
-    markup.row(
-        types.InlineKeyboardButton("💰 Экономика", callback_data="eco"),
-        types.InlineKeyboardButton("🎭 Действия", callback_data="actions")
-    )
-
-    markup.row(
-        types.InlineKeyboardButton("💍 Брак", callback_data="marry"),
-        types.InlineKeyboardButton("❤️ Отношения", callback_data="love")
-    )
-
     bot.send_message(
         chat_id,
-        "📖 Выбери раздел:",
-        reply_markup=markup
+        "📜 Команды:\n\n"
+        "профиль\n"
+        "баланс\n"
+        "бонус\n"
+        "помощь\n"
     )
 
 
 # ===== CALLBACK =====
 def handle_callbacks(bot, call):
 
-    if call.data == "cmds":
-        send_commands(bot, call.message.chat.id)
-
-    elif call.data == "eco":
-        bot.send_message(
-            call.message.chat.id,
-            "💰 Экономика:\n\nбаланс\nбонус"
+    if call.data == "help_economy":
+        text = (
+            "💰 Экономика\n\n"
+            "баланс — посмотреть баланс\n"
+            "бонус — ежедневная награда\n"
+            "перевод — отправить деньги\n"
         )
 
-    elif call.data == "actions":
-        bot.send_message(
-            call.message.chat.id,
-            "🎭 Действия:\n\nобнять\nпоцеловать\nукусить"
+    elif call.data == "help_actions":
+        text = (
+            "🎭 Действия\n\n"
+            "обнять\n"
+            "поцеловать\n"
+            "укусить\n"
         )
 
-    elif call.data == "marry":
-        bot.send_message(
+    elif call.data == "help_love":
+        text = "💑 Отношения\n\n🚧 В разработке"
+
+    elif call.data == "help_clans":
+        text = "👥 Кланы\n\n🚧 В разработке"
+
+    else:
+        return
+
+    # кнопка назад
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔙 Назад", callback_data="help_back"))
+
+    bot.edit_message_text(
+        text,
+        call.message.chat.id,
+        call.message.message_id,
+        reply_markup=markup
+    )
+
+    bot.answer_callback_query(call.id)
+
+
+    # ===== НАЗАД =====
+    if call.data == "help_back":
+        markup = types.InlineKeyboardMarkup()
+
+        markup.add(types.InlineKeyboardButton("💰 Экономика", callback_data="help_economy"))
+        markup.add(types.InlineKeyboardButton("🎭 Действия", callback_data="help_actions"))
+        markup.add(types.InlineKeyboardButton("💑 Отношения", callback_data="help_love"))
+        markup.add(types.InlineKeyboardButton("👥 Кланы", callback_data="help_clans"))
+
+        bot.edit_message_text(
+            "📚 Помощь\n\nВыбери раздел:",
             call.message.chat.id,
-            "💍 Брак:\n\n🚧 В разработке"
+            call.message.message_id,
+            reply_markup=markup
         )
 
-    elif call.data == "love":
-        bot.send_message(
-            call.message.chat.id,
-            "❤️ Отношения:\n\n🚧 В разработке"
-        )
+        bot.answer_callback_query(call.id)
