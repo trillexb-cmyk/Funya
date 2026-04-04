@@ -1,22 +1,30 @@
-from database import get_user, update_balance
+from database import update_balance, get_last_bonus, update_last_bonus, add_user
+import time
 
-# ===== БАЛАНС =====
-def show_balance(bot, message):
-    user = get_user(message.from_user.id)
+BONUS_AMOUNT = 2500
+COOLDOWN = 86400  # 24 часа
 
-    if not user:
-        bot.send_message(message.chat.id, "❌ Ты не зарегистрирован. Напиши /start")
+
+def get_bonus(bot, message):
+    user_id = message.from_user.id
+    add_user(user_id)
+
+    last_bonus = get_last_bonus(user_id)
+    now = int(time.time())
+
+    if now - last_bonus < COOLDOWN:
+        remaining = COOLDOWN - (now - last_bonus)
+        hours = remaining // 3600
+        minutes = (remaining % 3600) // 60
+
+        bot.send_message(
+            message.chat.id,
+            f"⏳ Бонус уже получен\nПопробуй через {hours}ч {minutes}м"
+        )
         return
 
-    bot.send_message(
-        message.chat.id,
-        f"💰 Баланс: {user[1]} 🍬 Фунтиков\n🍪 Печеньки: {user[2]}"
-    )
-
-
-# ===== БОНУС =====
-def get_bonus(bot, message):
-    update_balance(message.from_user.id, 2500)
+    update_balance(user_id, BONUS_AMOUNT)
+    update_last_bonus(user_id)
 
     bot.send_message(
         message.chat.id,
@@ -24,33 +32,11 @@ def get_bonus(bot, message):
     )
 
 
-# ===== ПЕРЕВОД =====
-def transfer(bot, message):
-    if not message.reply_to_message:
-        bot.send_message(message.chat.id, "❌ Ответь на сообщение пользователя")
-        return
-
-    try:
-        args = message.text.split()
-        amount = int(args[-1])
-    except:
-        bot.send_message(message.chat.id, "❌ Укажи сумму: фуня перевод 100")
-        return
-
-    sender_id = message.from_user.id
-    target_id = message.reply_to_message.from_user.id
-
-    user = get_user(sender_id)
-
-    if user[1] < amount:
-        bot.send_message(message.chat.id, "❌ Недостаточно средств")
-        return
-
-    # списание и начисление
-    update_balance(sender_id, -amount)
-    update_balance(target_id, amount)
+def show_balance(bot, message):
+    from database import get_user
+    user = get_user(message.from_user.id)
 
     bot.send_message(
         message.chat.id,
-        f"💸 Перевод выполнен\n{amount} 💰 отправлено"
+        f"💰 Баланс: {user[1]} 🍬\n🍪 Печеньки: {user[2]}"
     )
