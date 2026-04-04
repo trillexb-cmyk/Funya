@@ -1,26 +1,36 @@
-from database import get_user, add_user
+from database import get_user, create_user
+
 
 def show_profile(bot, message):
     user_id = message.from_user.id
-    add_user(user_id)
 
+    # получаем или создаём пользователя
     user = get_user(user_id)
 
     if not user:
-        bot.send_message(message.chat.id, "Ошибка профиля")
-        return
+        create_user(user_id)
+        user = get_user(user_id)
 
-    text = f"""👤 Твой профиль
+    # данные
+    balance = user[1]
+    cookies = user[2]
+    clan = user[3]
+    partner = user[4]
 
-ID: {user[0]}
-Баланс: {user[1]} 🍬 Фунтиков
-🍪 Печенек: {user[2]}
+    text = (
+        f"👤 Профиль\n\n"
+        f"🆔 Айди: {user_id}\n"
+        f"💰 Баланс: {balance} 🍬Фунтиков\n"
+        f"🍪 Печенек: {cookies}\n"
+        f"⚒ Характеристика: 0\n"
+    )
 
-Характеристика: 0"""
+    if partner:
+        text += f"💑 Пара: {partner}\n"
 
-    if user[4]:
-        text += f"\nПара: {user[4]}"
-
-    text += f"\nКлан: {user[3]}"
+    if clan:
+        text += f"🏰 Клан: {clan}\n"
+    else:
+        text += f"🏰 Клан: отсутствует\n"
 
     bot.send_message(message.chat.id, text)
