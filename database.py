@@ -4,6 +4,7 @@ import psycopg
 import time
 from config import USE_POSTGRES
 
+# ===== ПОДКЛЮЧЕНИЕ =====
 if USE_POSTGRES:
     conn = psycopg.connect(os.environ.get("DATABASE_URL"))
     cursor = conn.cursor()
@@ -18,17 +19,11 @@ CREATE TABLE IF NOT EXISTS users (
     balance INT DEFAULT 500,
     cookies INT DEFAULT 2000,
     clan TEXT DEFAULT 'отсутствует',
-    partner TEXT DEFAULT NULL
+    partner TEXT DEFAULT NULL,
+    last_bonus BIGINT DEFAULT 0
 )
 """)
 conn.commit()
-
-# ===== ДОБАВЛЕНИЕ КОЛОНКИ (ЕСЛИ НЕТ) =====
-try:
-    cursor.execute("ALTER TABLE users ADD COLUMN last_bonus BIGINT DEFAULT 0")
-    conn.commit()
-except:
-    pass  # если колонка уже есть — просто игнорируем
 
 
 # ===== ФУНКЦИИ =====
@@ -79,6 +74,7 @@ def get_last_bonus(user_id):
 
 def update_last_bonus(user_id):
     now = int(time.time())
+
     if USE_POSTGRES:
         cursor.execute(
             "UPDATE users SET last_bonus=%s WHERE user_id=%s",
@@ -89,4 +85,22 @@ def update_last_bonus(user_id):
             "UPDATE users SET last_bonus=? WHERE user_id=?",
             (now, user_id)
         )
+    conn.commit()
+
+
+# ===== РЕСЕТ БД =====
+def reset_db():
+    cursor.execute("DROP TABLE IF EXISTS users")
+    conn.commit()
+
+    cursor.execute("""
+    CREATE TABLE users (
+        user_id BIGINT PRIMARY KEY,
+        balance INT DEFAULT 500,
+        cookies INT DEFAULT 2000,
+        clan TEXT DEFAULT 'отсутствует',
+        partner TEXT DEFAULT NULL,
+        last_bonus BIGINT DEFAULT 0
+    )
+    """)
     conn.commit()
