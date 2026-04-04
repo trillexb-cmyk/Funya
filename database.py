@@ -1,11 +1,11 @@
 import os
 import sqlite3
-import psycopg
+import psycopg  # psycopg3
 from config import USE_POSTGRES
 
 if USE_POSTGRES:
-    # Подключение к PostgreSQL
-    conn = psycopg2.connect(os.environ.get("DATABASE_URL"))
+    # подключение к PostgreSQL
+    conn = psycopg.connect(os.environ.get("DATABASE_URL"))
     cursor = conn.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
