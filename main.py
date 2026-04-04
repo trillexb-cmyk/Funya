@@ -4,8 +4,9 @@ import time
 
 from database import init_db
 
-# подключаем модули
-from handlers import profile, economy, menu
+import handlers.profile as profile
+import handlers.economy as economy
+import handlers.menu as menu
 
 TOKEN = os.getenv("TOKEN")
 bot = telebot.TeleBot(TOKEN)
