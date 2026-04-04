@@ -2,8 +2,6 @@ import telebot
 import os
 import time
 
-from database import init_db
-
 import handlers.profile as profile
 import handlers.economy as economy
 import handlers.menu as menu
@@ -12,9 +10,6 @@ TOKEN = os.getenv("TOKEN")
 bot = telebot.TeleBot(TOKEN)
 
 start_time = time.time()
-
-# инициализация БД
-init_db()
 
 
 # ===== СТАРТ =====
@@ -26,6 +21,9 @@ def start(msg):
 # ===== ОБЩИЙ ОБРАБОТЧИК =====
 @bot.message_handler(func=lambda message: True)
 def handler(message):
+    if not message.text:
+        return
+
     text = message.text.lower()
 
     # вызов бота
@@ -47,8 +45,10 @@ def handler(message):
 
         else:
             uptime = int(time.time() - start_time)
-            bot.send_message(message.chat.id,
-                             f"📊 Статистика:\n⏱ {uptime} сек")
+            bot.send_message(
+                message.chat.id,
+                f"📊 Статистика:\n⏱ {uptime} сек"
+            )
 
     # кнопки
     else:
