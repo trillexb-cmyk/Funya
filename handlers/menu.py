@@ -1,31 +1,37 @@
 from telebot import types
-import handlers.profile as profile
-import handlers.economy as economy
 
-# ===== МЕНЮ =====
+
+# ===== МЕНЮ (ЛС) =====
 def send_menu(bot, chat_id):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    markup.row("👤 Профиль", "⚒ Кузня")
-    markup.row("🛒 Магазин", "👥 Команды")
-    markup.row("🏆 Турниры")
+    markup.row("👤 Профиль", "🎁 Бонус")
+
+    markup.row("⚒ Кузня", "🛒 Магазин")
+    markup.row("👥 Команды", "🏆 Турниры")
+
     markup.row("💬 Чаты", "👥 Кланы")
-    markup.row("🎮 Игры", "🎁 Бонус")
+    markup.row("🎮 Игры")
+
     markup.row("📜 Политика", "📞 Связь")
 
-    bot.send_message(chat_id, "👋 Привет, я Фуня\n\nВыбери раздел 👇", reply_markup=markup)
+    bot.send_message(chat_id, "📋 Меню", reply_markup=markup)
 
 
-# ===== КНОПКИ =====
+# ===== ОБРАБОТКА КНОПОК =====
 def handle_buttons(bot, message):
     text = message.text
 
+    # ===== РАБОЧИЕ =====
     if text == "👤 Профиль":
-        profile.show_profile(bot, message)
+        from handlers.profile import show_profile
+        show_profile(bot, message)
 
     elif text == "🎁 Бонус":
-        economy.get_bonus(bot, message)
+        from handlers.economy import get_bonus
+        get_bonus(bot, message)
 
+    # ===== ЗАГЛУШКИ =====
     elif text in [
         "⚒ Кузня", "🛒 Магазин", "👥 Команды",
         "🏆 Турниры",
