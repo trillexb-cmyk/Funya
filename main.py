@@ -5,7 +5,7 @@ import random
 from config import TOKEN, ADMIN_ID
 
 import handlers.menu as menu
-import handlers.help_menu as help_menu
+import handlers.router as router
 
 from database import reset_db
 
@@ -18,55 +18,10 @@ def start(msg):
     menu.send_menu(bot, msg.chat.id)
 
 
-# ===== CALLBACK (инлайн кнопки помощи) =====
-@bot.callback_query_handler(func=lambda call: True)
-def callback(call):
-    help_menu.handle_callbacks(bot, call)
-
-
 # ===== ОБЩИЙ ОБРАБОТЧИК =====
 @bot.message_handler(func=lambda message: True)
 def handler(message):
-    if not message.text:
-        return
-
-    text_low = message.text.lower()
-
-    print("TEXT:", message.text)
-
-
-    # ===== ВСЕ КНОПКИ =====
-    if menu.handle_buttons(bot, message):
-        return
-
-
-    # ===== РЕСЕТ =====
-    if text_low == "ресет":
-        if message.from_user.id == ADMIN_ID:
-            reset_db()
-            bot.send_message(message.chat.id, "✅ База данных очищена")
-        else:
-            bot.send_message(message.chat.id, "❌ Нет доступа")
-        return
-
-
-    # ===== ФУНЯ =====
-    if text_low == "фуня":
-        phrases = [
-            "👀 Я тут",
-            "😏 Чего звал?",
-            "🤖 На связи",
-            "🔥 Фуня в деле"
-        ]
-        bot.send_message(message.chat.id, random.choice(phrases))
-        return
-
-    if text_low.startswith("фуня "):
-        text_low = text_low.replace("фуня ", "", 1)
-
-
-    # ===== ИГНОР =====
-    return
+    router.handle_all(bot, message)
 
 
 print("Бот запущен...")
