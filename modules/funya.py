@@ -1,14 +1,17 @@
 import random
 
 
+# ===== ОБЫЧНЫЕ ФРАЗЫ =====
 PHRASES = [
     "👀 Я тут",
     "😏 Чего звал?",
     "🤖 На связи",
-    "🔥 Фуня в деле"
+    "🔥 Фуня в деле",
+    "😎 Кто меня звал?",
 ]
 
 
+# ===== ДА / НЕТ =====
 YES_NO = [
     "✅ Да",
     "❌ Нет",
@@ -20,44 +23,61 @@ YES_NO = [
 ]
 
 
+# ===== ПРОВЕРКА НА "Я УРОД" И Т.П. =====
 def is_question(text):
-    keywords = ["я", "он", "она", "они"]
+    subjects = ["я", "он", "она", "они"]
 
-    return (
-        "?" in text and
-        any(word in text for word in keywords)
-    )
+    words = text.split()
+
+    # есть ли субъект
+    has_subject = any(word in words for word in subjects)
+
+    # проверка прилагательных по окончаниям
+    def is_adj(word):
+        endings = (
+            "ый", "ой", "ий",
+            "ая", "яя",
+            "ое", "ее",
+            "ые", "ие"
+        )
+        return word.endswith(endings)
+
+    has_adj = any(is_adj(word) for word in words)
+
+    return has_subject and has_adj
 
 
+# ===== ОТПРАВКА С ОТВЕТОМ НА СООБЩЕНИЕ =====
 def send(bot, message, text):
     bot.send_message(
         message.chat.id,
         text,
-        reply_to_message_id=message.message_id  # 🔥 ОТВЕТ НА СООБЩЕНИЕ
+        reply_to_message_id=message.message_id
     )
 
 
+# ===== ГЛАВНАЯ ФУНКЦИЯ =====
 def run(bot, message, text):
     text = text.strip().lower()
 
 
-    # ===== ПРОСТО ФУНЯ =====
+    # ===== ПРОСТО "ФУНЯ" =====
     if text == "":
         send(bot, message, random.choice(PHRASES))
         return
 
 
-    # ===== ВОПРОСЫ =====
+    # ===== "Я УРОД" И Т.П. =====
     if is_question(text):
         send(bot, message, random.choice(YES_NO))
         return
 
 
-    # ===== ДА / НЕТ =====
+    # ===== "ДА ИЛИ НЕТ" =====
     if "да или нет" in text:
         send(bot, message, random.choice(YES_NO))
         return
 
 
-    # ===== НЕ ПОНЯЛ =====
+    # ===== ЕСЛИ НЕ ПОНЯЛ =====
     send(bot, message, "🤖 Не понял вопрос")
