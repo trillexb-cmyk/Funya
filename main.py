@@ -21,7 +21,7 @@ def start(msg):
         menu.send_menu(bot, msg.chat.id)
 
 
-# ===== CALLBACK =====
+# ===== CALLBACK (кнопки помощи) =====
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     help_menu.handle_callbacks(bot, call)
@@ -36,7 +36,8 @@ def handler(message):
     text = message.text
     text_low = text.lower()
 
-    print("TEXT:", text)
+    print("TEXT:", text)  # DEBUG
+
 
     # ===== РЕСЕТ БД =====
     if text_low == "ресет":
@@ -47,14 +48,21 @@ def handler(message):
             bot.send_message(message.chat.id, "❌ Нет доступа")
         return
 
-    # ===== КНОПКИ =====
-    if text in ["👤 Профиль", "🎁 Бонус"]:
-        menu.handle_buttons(bot, message)
+
+    # ===== КНОПКИ (ЖЁСТКИЙ ФИКС) =====
+    if text == "👤 Профиль":
+        profile.show_profile(bot, message)
         return
+
+    if text == "🎁 Бонус":
+        economy.get_bonus(bot, message)
+        return
+
 
     # ===== УБИРАЕМ "ФУНЯ" =====
     if text_low.startswith("фуня"):
         text_low = text_low.replace("фуня", "").strip()
+
 
     # ===== ПРОСТО "ФУНЯ" =====
     if text_low == "фуня":
@@ -67,31 +75,32 @@ def handler(message):
         bot.send_message(message.chat.id, random.choice(phrases))
         return
 
+
     # ===== КОМАНДЫ =====
-    if text_low in ["профиль", "👤 профиль"]:
+    if "профиль" in text_low:
         profile.show_profile(bot, message)
 
-    elif text_low == "баланс":
+    elif "баланс" in text_low:
         economy.show_balance(bot, message)
 
-    elif text_low in ["бонус", "🎁 бонус"]:
+    elif "бонус" in text_low:
         economy.get_bonus(bot, message)
 
     elif "помощь" in text_low:
         help_menu.send_help(bot, message.chat.id)
 
-    elif "команды" in text_low:
-        help_menu.send_commands(bot, message.chat.id)
-
     else:
-        return
+        return  # игнор
 
 
 print("Бот запущен...")
 
-# фикс 409
+
+# ===== ФИКС 409 =====
 bot.remove_webhook()
 
+
+# ===== ЗАПУСК =====
 while True:
     try:
         bot.infinity_polling(skip_pending=True)
