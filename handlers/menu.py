@@ -1,6 +1,4 @@
 from telebot import types
-import handlers.profile as profile
-import handlers.economy as economy
 
 
 # ===== КЛАВИАТУРА =====
@@ -9,39 +7,42 @@ def send_menu(bot, chat_id):
 
     markup.row("👤 Профиль", "🎁 Бонус")
     markup.row("💰 Баланс", "📚 Помощь")
-    markup.row("🎭 Действия", "💑 Отношения")
-    markup.row("💍 Брак", "👥 Кланы")
 
-    bot.send_message(chat_id, "🤖 Меню", reply_markup=markup)
+    bot.send_message(chat_id, "🤖 Панель управления", reply_markup=markup)
 
 
-# ===== ОБРАБОТКА КНОПОК =====
+# ===== КНОПКИ =====
 def handle_buttons(bot, message):
-    if not message.text:
-        return False
-
     text = message.text.lower()
 
-    print("BTN:", text)
-
-
     if "профиль" in text:
-        profile.show_profile(bot, message)
+        from handlers.profile import show_profile
+        show_profile(bot, message)
         return True
 
-    if "бонус" in text:
-        economy.get_bonus(bot, message)
+    elif "бонус" in text:
+        from handlers.economy import get_bonus
+        get_bonus(bot, message)
         return True
 
-    if any(word in text for word in [
-        "баланс",
-        "помощь",
-        "действия",
-        "отношения",
-        "брак",
-        "кланы"
-    ]):
-        bot.send_message(message.chat.id, "🚧 Раздел в разработке")
+    elif "баланс" in text:
+        from handlers.economy import show_balance
+        show_balance(bot, message)
+        return True
+
+    elif "помощь" in text:
+        send_help(bot, message.chat.id)
         return True
 
     return False
+
+
+# ===== ПОМОЩЬ =====
+def send_help(bot, chat_id):
+    bot.send_message(
+        chat_id,
+        "📚 Помощь\n\n"
+        "👤 профиль\n"
+        "🎁 бонус\n"
+        "💰 баланс\n"
+    )
