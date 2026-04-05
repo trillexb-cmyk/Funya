@@ -12,18 +12,31 @@ else:
     conn = sqlite3.connect("funya.db", check_same_thread=False)
     cursor = conn.cursor()
 
+
 # ===== СОЗДАНИЕ ТАБЛИЦЫ =====
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
-    user_id BIGINT PRIMARY KEY,
-    balance INT DEFAULT 500,
-    cookies INT DEFAULT 2000,
-    clan TEXT DEFAULT 'отсутствует',
-    partner TEXT DEFAULT NULL,
-    last_bonus BIGINT DEFAULT 0
+    user_id BIGINT PRIMARY KEY
 )
 """)
 conn.commit()
+
+
+# ===== ФУНКЦИЯ БЕЗОПАСНОГО ДОБАВЛЕНИЯ КОЛОНКИ =====
+def safe_column(query):
+    try:
+        cursor.execute(query)
+        conn.commit()
+    except:
+        pass  # если уже есть — игнор
+
+
+# ===== АВТО-ОБНОВЛЕНИЕ СТРУКТУРЫ =====
+safe_column("ALTER TABLE users ADD COLUMN balance INT DEFAULT 500")
+safe_column("ALTER TABLE users ADD COLUMN cookies INT DEFAULT 2000")
+safe_column("ALTER TABLE users ADD COLUMN clan TEXT DEFAULT 'отсутствует'")
+safe_column("ALTER TABLE users ADD COLUMN partner TEXT DEFAULT NULL")
+safe_column("ALTER TABLE users ADD COLUMN last_bonus BIGINT DEFAULT 0")
 
 
 # ===== ФУНКЦИИ =====
@@ -74,7 +87,6 @@ def get_last_bonus(user_id):
 
 def update_last_bonus(user_id):
     now = int(time.time())
-
     if USE_POSTGRES:
         cursor.execute(
             "UPDATE users SET last_bonus=%s WHERE user_id=%s",
@@ -90,17 +102,5 @@ def update_last_bonus(user_id):
 
 # ===== РЕСЕТ БД =====
 def reset_db():
-    cursor.execute("DROP TABLE IF EXISTS users")
-    conn.commit()
-
-    cursor.execute("""
-    CREATE TABLE users (
-        user_id BIGINT PRIMARY KEY,
-        balance INT DEFAULT 500,
-        cookies INT DEFAULT 2000,
-        clan TEXT DEFAULT 'отсутствует',
-        partner TEXT DEFAULT NULL,
-        last_bonus BIGINT DEFAULT 0
-    )
-    """)
+    cursor.execute("DELETE FROM users")
     conn.commit()
