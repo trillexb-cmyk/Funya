@@ -8,6 +8,7 @@ from modules import actions
 from modules import relations
 from modules import marriage
 from modules import clans
+from modules import funya
 
 
 def start(bot, message):
@@ -18,7 +19,7 @@ def handle(bot, message):
     if not message.text:
         return
 
-    text = message.text.lower()
+    text = message.text.lower().strip()
 
     print("MSG:", text)
 
@@ -29,9 +30,14 @@ def handle(bot, message):
             return
 
 
-    # ===== УБИРАЕМ "ФУНЯ" =====
+    # ===== ФУНЯ (ПРЕФИКС) =====
     if text.startswith("фуня"):
         text = text.replace("фуня", "", 1).strip()
+
+        # если просто "фуня"
+        if text == "":
+            funya.run(bot, message, "")
+            return
 
 
     # ===== КОМАНДЫ =====
@@ -60,4 +66,6 @@ def handle(bot, message):
         clans.run(bot, message)
 
     else:
-        return
+        # если было "фуня что-то непонятное"
+        if message.text.lower().startswith("фуня"):
+            funya.run(bot, message, text)
