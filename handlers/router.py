@@ -9,19 +9,23 @@ from modules import relations
 from modules import marriage
 from modules import clans
 from modules import funya
+from modules import ban
 
 
+# ===== СТАРТ =====
 def start(bot, message):
     menu.send_menu(bot, message.chat.id)
 
 
+# ===== ОСНОВНОЙ РОУТЕР =====
 def handle(bot, message):
     if not message.text:
         return
 
-    text = message.text.lower().strip()
+    text = message.text
+    text_low = text.lower().strip()
 
-    print("MSG:", text)
+    print("MSG:", text_low)
 
 
     # ===== КНОПКИ (ЛС) =====
@@ -30,42 +34,43 @@ def handle(bot, message):
             return
 
 
-    # ===== ФУНЯ (ПРЕФИКС) =====
-    if text.startswith("фуня"):
-        text = text.replace("фуня", "", 1).strip()
+    # ===== БАН (ТОЛЬКО В ГРУППЕ) =====
+    if text_low == "бан":
+        ban.run(bot, message)
+        return
 
-        # если просто "фуня"
-        if text == "":
-            funya.run(bot, message, "")
-            return
+
+    # ===== ФУНЯ =====
+    if text_low.startswith("фуня"):
+        cleaned = text_low.replace("фуня", "", 1).strip()
+        funya.run(bot, message, cleaned)
+        return
 
 
     # ===== КОМАНДЫ =====
-    if "профиль" in text:
+    if "профиль" in text_low:
         profile.run(bot, message)
 
-    elif "бонус" in text:
+    elif "бонус" in text_low:
         bonus.run(bot, message)
 
-    elif "баланс" in text:
+    elif "баланс" in text_low:
         balance.run(bot, message)
 
-    elif "помощь" in text:
+    elif "помощь" in text_low:
         help_cmd.run(bot, message)
 
-    elif "действия" in text:
+    elif "действия" in text_low:
         actions.run(bot, message)
 
-    elif "отношения" in text:
+    elif "отношения" in text_low:
         relations.run(bot, message)
 
-    elif "брак" in text:
+    elif "брак" in text_low:
         marriage.run(bot, message)
 
-    elif "кланы" in text:
+    elif "кланы" in text_low:
         clans.run(bot, message)
 
     else:
-        # если было "фуня что-то непонятное"
-        if message.text.lower().startswith("фуня"):
-            funya.run(bot, message, text)
+        return
