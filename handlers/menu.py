@@ -1,42 +1,50 @@
 from telebot import types
+import handlers.profile as profile
+import handlers.economy as economy
+import handlers.help_menu as help_menu
 
 
-# ===== МЕНЮ (ЛС) =====
+# ===== КЛАВИАТУРА =====
 def send_menu(bot, chat_id):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     markup.row("👤 Профиль", "🎁 Бонус")
+    markup.row("💰 Баланс", "📚 Помощь")
+    markup.row("🎭 Действия", "💑 Отношения")
+    markup.row("💍 Брак", "👥 Кланы")
 
-    markup.row("⚒ Кузня", "🛒 Магазин")
-    markup.row("👥 Команды", "🏆 Турниры")
-
-    markup.row("💬 Чаты", "👥 Кланы")
-    markup.row("🎮 Игры")
-
-    markup.row("📜 Политика", "📞 Связь")
-
-    bot.send_message(chat_id, "📋 Меню", reply_markup=markup)
+    bot.send_message(chat_id, "🤖 Добро пожаловать!", reply_markup=markup)
 
 
 # ===== ОБРАБОТКА КНОПОК =====
 def handle_buttons(bot, message):
     text = message.text
 
-    # ===== РАБОЧИЕ =====
     if text == "👤 Профиль":
-        from handlers.profile import show_profile
-        show_profile(bot, message)
+        profile.show_profile(bot, message)
 
     elif text == "🎁 Бонус":
-        from handlers.economy import get_bonus
-        get_bonus(bot, message)
+        economy.get_bonus(bot, message)
 
-    # ===== ЗАГЛУШКИ =====
-    elif text in [
-        "⚒ Кузня", "🛒 Магазин", "👥 Команды",
-        "🏆 Турниры",
-        "💬 Чаты", "👥 Кланы",
-        "🎮 Игры",
-        "📜 Политика", "📞 Связь"
-    ]:
-        bot.send_message(message.chat.id, "🚧 Раздел в разработке")
+    elif text == "💰 Баланс":
+        economy.show_balance(bot, message)
+
+    elif text == "📚 Помощь":
+        help_menu.send_help(bot, message.chat.id)
+
+    elif text == "🎭 Действия":
+        bot.send_message(message.chat.id, "🎭 Действия\n\n🚧 В разработке")
+
+    elif text == "💑 Отношения":
+        bot.send_message(message.chat.id, "💑 Отношения\n\n🚧 В разработке")
+
+    elif text == "💍 Брак":
+        bot.send_message(message.chat.id, "💍 Брак\n\n🚧 В разработке")
+
+    elif text == "👥 Кланы":
+        bot.send_message(message.chat.id, "👥 Кланы\n\n🚧 В разработке")
+
+    else:
+        return False
+
+    return True
