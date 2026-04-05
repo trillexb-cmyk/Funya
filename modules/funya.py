@@ -11,43 +11,71 @@ PHRASES = [
 ]
 
 
-# ===== ДА / НЕТ =====
+# ===== ХОРОШИЕ ОТВЕТЫ =====
+GOOD = [
+    "😎 Конечно",
+    "🔥 Ещё бы",
+    "💯 Без вариантов",
+    "👑 Факт",
+]
+
+
+# ===== ЗАЩИТА БОТА =====
+BAD = [
+    "😏 Мимо",
+    "💀 Даже не близко",
+    "👑 Попробуй ещё раз",
+    "🔥 Ошибаешься",
+]
+
+
+# ===== ОБЫЧНЫЕ ДА/НЕТ =====
 YES_NO = [
     "✅ Да",
     "❌ Нет",
     "🤔 Возможно",
     "😏 Скорее да",
     "😐 Скорее нет",
-    "🔥 Однозначно да",
-    "💀 Даже не думай"
 ]
 
 
-# ===== ПРОВЕРКА НА "Я УРОД" И Т.П. =====
-def is_question(text):
-    subjects = ["я", "он", "она", "они"]
+# ===== ПРИЗНАКИ ХОРОШЕГО / ПЛОХОГО =====
+GOOD_WORDS = ["крас", "умн", "крут", "сильн", "луч", "топ"]
+BAD_WORDS = ["туп", "урод", "лох", "слаб", "глуп", "ужас"]
 
+
+# ===== КТО УПОМИНАЕТСЯ =====
+def get_subject(text):
     words = text.split()
 
-    # есть ли субъект
-    has_subject = any(word in words for word in subjects)
+    if "ты" in words:
+        return "bot"
+    elif "я" in words:
+        return "self"
+    elif "он" in words:
+        return "he"
+    elif "она" in words:
+        return "she"
+    elif "они" in words:
+        return "they"
 
-    # проверка прилагательных по окончаниям
-    def is_adj(word):
-        endings = (
-            "ый", "ой", "ий",
-            "ая", "яя",
-            "ое", "ее",
-            "ые", "ие"
-        )
-        return word.endswith(endings)
-
-    has_adj = any(is_adj(word) for word in words)
-
-    return has_subject and has_adj
+    return None
 
 
-# ===== ОТПРАВКА С ОТВЕТОМ НА СООБЩЕНИЕ =====
+# ===== ОПРЕДЕЛЕНИЕ ТОНА =====
+def get_tone(text):
+    for w in GOOD_WORDS:
+        if w in text:
+            return "good"
+
+    for w in BAD_WORDS:
+        if w in text:
+            return "bad"
+
+    return "neutral"
+
+
+# ===== ОТПРАВКА =====
 def send(bot, message, text):
     bot.send_message(
         message.chat.id,
@@ -56,28 +84,44 @@ def send(bot, message, text):
     )
 
 
-# ===== ГЛАВНАЯ ФУНКЦИЯ =====
+# ===== ГЛАВНАЯ =====
 def run(bot, message, text):
     text = text.strip().lower()
 
 
-    # ===== ПРОСТО "ФУНЯ" =====
+    # ===== ПРОСТО ФУНЯ =====
     if text == "":
         send(bot, message, random.choice(PHRASES))
         return
 
 
-    # ===== "Я УРОД" И Т.П. =====
-    if is_question(text):
+    subject = get_subject(text)
+
+
+    # ===== ЕСЛИ ОБРАЩЕНИЕ К БОТУ =====
+    if subject == "bot":
+        tone = get_tone(text)
+
+        if tone == "good":
+            send(bot, message, random.choice(GOOD))
+        elif tone == "bad":
+            send(bot, message, random.choice(BAD))
+        else:
+            send(bot, message, random.choice(YES_NO))
+        return
+
+
+    # ===== ДРУГИЕ =====
+    if subject:
         send(bot, message, random.choice(YES_NO))
         return
 
 
-    # ===== "ДА ИЛИ НЕТ" =====
+    # ===== ДА / НЕТ =====
     if "да или нет" in text:
         send(bot, message, random.choice(YES_NO))
         return
 
 
-    # ===== ЕСЛИ НЕ ПОНЯЛ =====
-    send(bot, message, "🤖 Не понял вопрос")
+    # ===== ОСТАЛЬНОЕ =====
+    send(bot, message, random.choice(PHRASES))
