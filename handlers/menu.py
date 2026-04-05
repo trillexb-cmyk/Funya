@@ -25,7 +25,6 @@ def handle_buttons(bot, message):
     print("BTN:", text)
 
 
-    # ===== РАБОЧИЕ =====
     if "профиль" in text:
         profile.show_profile(bot, message)
         return True
@@ -34,8 +33,6 @@ def handle_buttons(bot, message):
         economy.get_bonus(bot, message)
         return True
 
-
-    # ===== ВСЁ ОСТАЛЬНОЕ =====
     if any(word in text for word in [
         "баланс",
         "помощь",
@@ -46,6 +43,5 @@ def handle_buttons(bot, message):
     ]):
         bot.send_message(message.chat.id, "🚧 Раздел в разработке")
         return True
-
 
     return False
