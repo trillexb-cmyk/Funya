@@ -2,43 +2,62 @@ import os
 import sqlite3
 import psycopg
 import time
+import threading
 from config import USE_POSTGRES
+
+
+# ===== LOCK (АНТИ-ПАДЕНИЯ) =====
+lock = threading.Lock()
+
 
 # ===== ПОДКЛЮЧЕНИЕ =====
 if USE_POSTGRES:
     conn = psycopg.connect(os.environ.get("DATABASE_URL"))
-    conn.autocommit = True  # 🔥 УБИРАЕТ ПРОБЛЕМУ С ТРАНЗАКЦИЯМИ
-    cursor = conn.cursor()
+    conn.autocommit = True
 else:
     conn = sqlite3.connect("funya.db", check_same_thread=False)
-    cursor = conn.cursor()
 
 
-# ===== БЕЗОПАСНОЕ ВЫПОЛНЕНИЕ =====
-def safe_execute(query, params=None):
-    try:
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-    except Exception as e:
-        print("DB ERROR:", e)
-        if not USE_POSTGRES:
-            conn.rollback()
+# ===== УНИВЕРСАЛЬНЫЙ EXECUTE =====
+def execute(query, params=None, fetchone=False, fetchall=False):
+    with lock:  # 🔥 защита от потоков
+        try:
+            cur = conn.cursor()
+
+            if params:
+                cur.execute(query, params)
+            else:
+                cur.execute(query)
+
+            if fetchone:
+                return cur.fetchone()
+
+            if fetchall:
+                return cur.fetchall()
+
+            if not USE_POSTGRES:
+                conn.commit()
+
+        except Exception as e:
+            print("DB ERROR:", e)
+            try:
+                conn.rollback()
+            except:
+                pass
 
 
 # ===== СОЗДАНИЕ ТАБЛИЦЫ =====
-safe_execute("""
+execute("""
 CREATE TABLE IF NOT EXISTS users (
     user_id BIGINT PRIMARY KEY
 )
 """)
 
 
-# ===== АВТО-ОБНОВЛЕНИЕ КОЛОНОК =====
+# ===== АВТО-КОЛОНКИ =====
 def safe_column(query):
     try:
-        cursor.execute(query)
+        execute(query)
     except:
         pass
 
@@ -49,16 +68,23 @@ safe_column("ALTER TABLE users ADD COLUMN clan TEXT DEFAULT 'отсутству�
 safe_column("ALTER TABLE users ADD COLUMN partner TEXT DEFAULT NULL")
 safe_column("ALTER TABLE users ADD COLUMN last_bonus BIGINT DEFAULT 0")
 
+safe_column("ALTER TABLE users ADD COLUMN exp INT DEFAULT 0")
+safe_column("ALTER TABLE users ADD COLUMN level INT DEFAULT 1")
+safe_column("ALTER TABLE users ADD COLUMN reputation INT DEFAULT 0")
+safe_column("ALTER TABLE users ADD COLUMN messages INT DEFAULT 0")
+safe_column("ALTER TABLE users ADD COLUMN warns INT DEFAULT 0")
+safe_column("ALTER TABLE users ADD COLUMN mute_until BIGINT DEFAULT 0")
+
 
 # ===== ПОЛЬЗОВАТЕЛЬ =====
 def add_user(user_id):
     if USE_POSTGRES:
-        safe_execute(
+        execute(
             "INSERT INTO users (user_id) VALUES (%s) ON CONFLICT DO NOTHING",
             (user_id,)
         )
     else:
-        safe_execute(
+        execute(
             "INSERT OR IGNORE INTO users (user_id) VALUES (?)",
             (user_id,)
         )
@@ -66,21 +92,28 @@ def add_user(user_id):
 
 def get_user(user_id):
     if USE_POSTGRES:
-        safe_execute("SELECT * FROM users WHERE user_id=%s", (user_id,))
+        return execute(
+            "SELECT * FROM users WHERE user_id=%s",
+            (user_id,),
+            fetchone=True
+        )
     else:
-        safe_execute("SELECT * FROM users WHERE user_id=?", (user_id,))
-    return cursor.fetchone()
+        return execute(
+            "SELECT * FROM users WHERE user_id=?",
+            (user_id,),
+            fetchone=True
+        )
 
 
 # ===== БАЛАНС =====
 def update_balance(user_id, amount):
     if USE_POSTGRES:
-        safe_execute(
+        execute(
             "UPDATE users SET balance = balance + %s WHERE user_id=%s",
             (amount, user_id)
         )
     else:
-        safe_execute(
+        execute(
             "UPDATE users SET balance = balance + ? WHERE user_id=?",
             (amount, user_id)
         )
@@ -89,27 +122,66 @@ def update_balance(user_id, amount):
 # ===== БОНУС =====
 def get_last_bonus(user_id):
     if USE_POSTGRES:
-        safe_execute("SELECT last_bonus FROM users WHERE user_id=%s", (user_id,))
+        result = execute(
+            "SELECT last_bonus FROM users WHERE user_id=%s",
+            (user_id,),
+            fetchone=True
+        )
     else:
-        safe_execute("SELECT last_bonus FROM users WHERE user_id=?", (user_id,))
-    result = cursor.fetchone()
+        result = execute(
+            "SELECT last_bonus FROM users WHERE user_id=?",
+            (user_id,),
+            fetchone=True
+        )
+
     return result[0] if result else 0
 
 
 def update_last_bonus(user_id):
     now = int(time.time())
+
     if USE_POSTGRES:
-        safe_execute(
+        execute(
             "UPDATE users SET last_bonus=%s WHERE user_id=%s",
             (now, user_id)
         )
     else:
-        safe_execute(
+        execute(
             "UPDATE users SET last_bonus=? WHERE user_id=?",
             (now, user_id)
         )
 
 
+# ===== ДОП =====
+def add_exp(user_id, amount):
+    if USE_POSTGRES:
+        execute(
+            "UPDATE users SET exp = exp + %s WHERE user_id=%s",
+            (amount, user_id)
+        )
+    else:
+        execute(
+            "UPDATE users SET exp = exp + ? WHERE user_id=?",
+            (amount, user_id)
+        )
+
+
+def add_message(user_id):
+    if USE_POSTGRES:
+        execute(
+            "UPDATE users SET messages = messages + 1 WHERE user_id=%s",
+            (user_id,)
+        )
+    else:
+        execute(
+            "UPDATE users SET messages = messages + 1 WHERE user_id=?",
+            (user_id,)
+        )
+
+
+# ===== РЕСЕТ =====
+def reset_db():
+    execute("DELETE FROM users")
 # ===== РЕСЕТ БД =====
 def reset_db():
     safe_execute("DELETE FROM users")
