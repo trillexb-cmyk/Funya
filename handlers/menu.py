@@ -16,32 +16,35 @@ def send_menu(bot, chat_id):
     bot.send_message(chat_id, "🤖 Добро пожаловать!", reply_markup=markup)
 
 
-# ===== ОБРАБОТКА КНОПОК =====
+# ===== ОБРАБОТКА КНОПОК (ФИКС) =====
 def handle_buttons(bot, message):
-    text = message.text
+    if not message.text:
+        return False
 
-    if text == "👤 Профиль":
+    text = message.text.lower()
+
+    if "профиль" in text:
         profile.show_profile(bot, message)
 
-    elif text == "🎁 Бонус":
+    elif "бонус" in text:
         economy.get_bonus(bot, message)
 
-    elif text == "💰 Баланс":
+    elif "баланс" in text:
         economy.show_balance(bot, message)
 
-    elif text == "📚 Помощь":
+    elif "помощь" in text:
         help_menu.send_help(bot, message.chat.id)
 
-    elif text == "🎭 Действия":
+    elif "действия" in text:
         bot.send_message(message.chat.id, "🎭 Действия\n\n🚧 В разработке")
 
-    elif text == "💑 Отношения":
+    elif "отношения" in text:
         bot.send_message(message.chat.id, "💑 Отношения\n\n🚧 В разработке")
 
-    elif text == "💍 Брак":
+    elif "брак" in text:
         bot.send_message(message.chat.id, "💍 Брак\n\n🚧 В разработке")
 
-    elif text == "👥 Кланы":
+    elif "кланы" in text:
         bot.send_message(message.chat.id, "👥 Кланы\n\n🚧 В разработке")
 
     else:
