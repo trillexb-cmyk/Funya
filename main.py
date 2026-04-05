@@ -17,8 +17,7 @@ bot = telebot.TeleBot(TOKEN)
 # ===== СТАРТ =====
 @bot.message_handler(commands=['start'])
 def start(msg):
-    if msg.chat.type == "private":
-        menu.send_menu(bot, msg.chat.id)
+    menu.send_menu(bot, msg.chat.id)
 
 
 # ===== CALLBACK =====
@@ -39,12 +38,12 @@ def handler(message):
     print("TEXT:", text)
 
 
-    # ===== КНОПКИ (через menu.py) =====
+    # ===== СНАЧАЛА КНОПКИ =====
     if menu.handle_buttons(bot, message):
         return
 
 
-    # ===== РЕСЕТ БД =====
+    # ===== РЕСЕТ =====
     if text_low == "ресет":
         if message.from_user.id == ADMIN_ID:
             reset_db()
