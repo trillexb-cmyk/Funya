@@ -16,35 +16,43 @@ def send_menu(bot, chat_id):
     bot.send_message(chat_id, "🤖 Добро пожаловать!", reply_markup=markup)
 
 
-# ===== ОБРАБОТКА КНОПОК (ФИКС) =====
+# ===== НОРМАЛИЗАЦИЯ ТЕКСТА =====
+def normalize(text: str):
+    return text.lower().replace(" ", "")
+
+
+# ===== ОБРАБОТКА КНОПОК =====
 def handle_buttons(bot, message):
     if not message.text:
         return False
 
-    text = message.text.lower()
+    raw = message.text
+    text = normalize(raw)
 
-    if "профиль" in text:
+    print("BTN:", raw)  # 👈 дебаг
+
+    if text == "👤профиль" or text == "профиль":
         profile.show_profile(bot, message)
 
-    elif "бонус" in text:
+    elif text == "🎁бонус" or text == "бонус":
         economy.get_bonus(bot, message)
 
-    elif "баланс" in text:
+    elif text == "💰баланс" or text == "баланс":
         economy.show_balance(bot, message)
 
-    elif "помощь" in text:
+    elif text == "📚помощь" or text == "помощь":
         help_menu.send_help(bot, message.chat.id)
 
-    elif "действия" in text:
+    elif text == "🎭действия" or text == "действия":
         bot.send_message(message.chat.id, "🎭 Действия\n\n🚧 В разработке")
 
-    elif "отношения" in text:
+    elif text == "💑отношения" or text == "отношения":
         bot.send_message(message.chat.id, "💑 Отношения\n\n🚧 В разработке")
 
-    elif "брак" in text:
+    elif text == "💍брак" or text == "брак":
         bot.send_message(message.chat.id, "💍 Брак\n\n🚧 В разработке")
 
-    elif "кланы" in text:
+    elif text == "👥кланы" or text == "кланы":
         bot.send_message(message.chat.id, "👥 Кланы\n\n🚧 В разработке")
 
     else:
