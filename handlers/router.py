@@ -1,14 +1,19 @@
-import handlers.menu as menu
-import handlers.profile as profile
-import handlers.economy as economy
+from handlers import menu
+
+from modules import profile
+from modules import bonus
+from modules import balance
+from modules import help as help_cmd
+from modules import actions
+from modules import relations
+from modules import marriage
+from modules import clans
 
 
-# ===== СТАРТ =====
 def start(bot, message):
     menu.send_menu(bot, message.chat.id)
 
 
-# ===== ОБРАБОТКА =====
 def handle(bot, message):
     if not message.text:
         return
@@ -31,17 +36,28 @@ def handle(bot, message):
 
     # ===== КОМАНДЫ =====
     if "профиль" in text:
-        profile.show_profile(bot, message)
+        profile.run(bot, message)
 
     elif "бонус" in text:
-        economy.get_bonus(bot, message)
+        bonus.run(bot, message)
 
     elif "баланс" in text:
-        economy.show_balance(bot, message)
+        balance.run(bot, message)
 
     elif "помощь" in text:
-        menu.send_help(bot, message.chat.id)
+        help_cmd.run(bot, message)
+
+    elif "действия" in text:
+        actions.run(bot, message)
+
+    elif "отношения" in text:
+        relations.run(bot, message)
+
+    elif "брак" in text:
+        marriage.run(bot, message)
+
+    elif "кланы" in text:
+        clans.run(bot, message)
 
     else:
-        # В чате молчим
         return
