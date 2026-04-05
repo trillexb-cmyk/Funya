@@ -3,51 +3,45 @@ import handlers.profile as profile
 import handlers.economy as economy
 
 
-def handle_all(bot, message):
+# ===== СТАРТ =====
+def start(bot, message):
+    menu.send_menu(bot, message.chat.id)
+
+
+# ===== ОБРАБОТКА =====
+def handle(bot, message):
     if not message.text:
-        print("❌ Нет текста")
-        return False
+        return
 
-    text = message.text
-    text_low = text.lower()
+    text = message.text.lower()
 
-    print("\n====== NEW MESSAGE ======")
-    print("TEXT:", text)
-    print("CHAT TYPE:", message.chat.type)
+    print("MSG:", text)
 
-    # ===== КНОПКИ =====
+
+    # ===== КНОПКИ (ЛС) =====
     if message.chat.type == "private":
-        print("➡️ Проверка кнопок...")
-
         if menu.handle_buttons(bot, message):
-            print("✅ Кнопка обработана")
-            return True
-        else:
-            print("❌ Не кнопка")
+            return
 
-    # ===== ФУНЯ =====
-    if "фуня" in text_low:
-        print("➡️ Обнаружено слово: фуня")
 
-        clean = text_low.replace("фуня", "").strip()
+    # ===== УБИРАЕМ "ФУНЯ" =====
+    if text.startswith("фуня"):
+        text = text.replace("фуня", "", 1).strip()
 
-        if clean == "":
-            bot.send_message(message.chat.id, "👀 Я тут")
-            print("✅ Ответ на фуня")
-            return True
 
-        if "профиль" in clean:
-            profile.show_profile(bot, message)
-            print("✅ Профиль через фуня")
-            return True
+    # ===== КОМАНДЫ =====
+    if "профиль" in text:
+        profile.show_profile(bot, message)
 
-        if "бонус" in clean:
-            economy.get_bonus(bot, message)
-            print("✅ Бонус через фуня")
-            return True
+    elif "бонус" in text:
+        economy.get_bonus(bot, message)
 
-        print("❌ Неизвестная команда после фуня")
-        return True
+    elif "баланс" in text:
+        economy.show_balance(bot, message)
 
-    print("❌ Сообщение проигнорировано")
-    return False
+    elif "помощь" in text:
+        menu.send_help(bot, message.chat.id)
+
+    else:
+        # В чате молчим
+        return
