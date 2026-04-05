@@ -1,42 +1,97 @@
-from database import update_balance, get_last_bonus, update_last_bonus, add_user
 import time
+from datetime import datetime, timedelta
+import pytz
 
-BONUS_AMOUNT = 2500
-COOLDOWN = 86400  # 24 часа
+from database import (
+    add_user,
+    get_user,
+    update_balance,
+    get_last_bonus,
+    update_last_bonus
+)
+
+from config import TIMEZONE
 
 
+# ===== БАЛАНС =====
+def show_balance(bot, message):
+    user_id = message.from_user.id
+    add_user(user_id)
+
+    user = get_user(user_id)
+
+    balance = user[1]
+    cookies = user[2]
+
+    bot.send_message(
+        message.chat.id,
+        f"💰 Баланс: {balance}\n🍪 Печеньки: {cookies}"
+    )
+
+
+# ===== ЕЖЕДНЕВНЫЙ БОНУС =====
 def get_bonus(bot, message):
     user_id = message.from_user.id
     add_user(user_id)
 
-    last_bonus = get_last_bonus(user_id)
-    now = int(time.time())
+    tz = pytz.timezone(TIMEZONE)
+    now = datetime.now(tz)
 
-    if now - last_bonus < COOLDOWN:
-        remaining = COOLDOWN - (now - last_bonus)
-        hours = remaining // 3600
-        minutes = (remaining % 3600) // 60
+    last_ts = get_last_bonus(user_id)
 
-        bot.send_message(
-            message.chat.id,
-            f"⏳ Бонус уже получен\nПопробуй через {hours}ч {minutes}м"
-        )
+    # ===== ЕСЛИ ВПЕРВЫЕ =====
+    if last_ts == 0:
+        give_bonus(bot, message, user_id)
         return
 
-    update_balance(user_id, BONUS_AMOUNT)
+    last = datetime.fromtimestamp(last_ts, tz)
+
+    # ===== ЕСЛИ НОВЫЙ ДЕНЬ =====
+    if last.date() != now.date():
+        give_bonus(bot, message, user_id)
+        return
+
+    # ===== СЧИТАЕМ ДО 00:00 =====
+    tomorrow = now + timedelta(days=1)
+
+    next_midnight = datetime(
+        year=tomorrow.year,
+        month=tomorrow.month,
+        day=tomorrow.day,
+        hour=0,
+        minute=0,
+        second=0,
+        tzinfo=tz
+    )
+
+    remaining = next_midnight - now
+
+    hours = remaining.seconds // 3600
+    minutes = (remaining.seconds % 3600) // 60
+
+    bot.send_message(
+        message.chat.id,
+        f"⏳ Бонус уже получен\n"
+        f"Попробуй через {hours}ч {minutes}м"
+    )
+
+
+# ===== ВЫДАЧА БОНУСА =====
+def give_bonus(bot, message, user_id):
+    reward = 2500
+
+    update_balance(user_id, reward)
     update_last_bonus(user_id)
 
     bot.send_message(
         message.chat.id,
-        "🎁 Бонус\n\n+2500 💰"
+        f"🎁 Ежедневный бонус\n+{reward} 💰"
     )
 
 
-def show_balance(bot, message):
-    from database import get_user
-    user = get_user(message.from_user.id)
-
+# ===== ПЕРЕВОД (заглушка) =====
+def transfer(bot, message):
     bot.send_message(
         message.chat.id,
-        f"💰 Баланс: {user[1]} 🍬\n🍪 Печеньки: {user[2]}"
-    )
+        "🔄 Переводы\n\n🚧 В разработке"
+            )
