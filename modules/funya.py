@@ -12,41 +12,52 @@ PHRASES = [
 YES_NO = [
     "✅ Да",
     "❌ Нет",
-    "🤔 Скорее да",
-    "😐 Скорее нет"
+    "🤔 Возможно",
+    "😏 Скорее да",
+    "😐 Скорее нет",
+    "🔥 Однозначно да",
+    "💀 Даже не думай"
 ]
 
 
-WHO_AM_I = [
-    "🤡 Ты долбаёб",
-    "😏 шлюха",
-    "🔥 соска",
-    "💀 Урод",
-    "🧠 Попробую ещё раз подумать",
-]
+def is_question(text):
+    keywords = ["я", "он", "она", "они"]
+
+    return (
+        "?" in text and
+        any(word in text for word in keywords)
+    )
+
+
+def send(bot, message, text):
+    bot.send_message(
+        message.chat.id,
+        text,
+        reply_to_message_id=message.message_id  # 🔥 ОТВЕТ НА СООБЩЕНИЕ
+    )
 
 
 def run(bot, message, text):
-    text = text.strip()
+    text = text.strip().lower()
 
 
     # ===== ПРОСТО ФУНЯ =====
     if text == "":
-        bot.send_message(message.chat.id, random.choice(PHRASES))
+        send(bot, message, random.choice(PHRASES))
         return
 
 
-    # ===== КТО Я =====
-    if "кто я" in text:
-        bot.send_message(message.chat.id, random.choice(WHO_AM_I))
+    # ===== ВОПРОСЫ =====
+    if is_question(text):
+        send(bot, message, random.choice(YES_NO))
         return
 
 
     # ===== ДА / НЕТ =====
     if "да или нет" in text:
-        bot.send_message(message.chat.id, random.choice(YES_NO))
+        send(bot, message, random.choice(YES_NO))
         return
 
 
     # ===== НЕ ПОНЯЛ =====
-    bot.send_message(message.chat.id, "🤖 Не понял вопрос")
+    send(bot, message, "🤖 Не понял вопрос")
