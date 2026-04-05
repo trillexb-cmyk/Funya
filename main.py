@@ -21,7 +21,7 @@ def start(msg):
         menu.send_menu(bot, msg.chat.id)
 
 
-# ===== CALLBACK (кнопки помощи) =====
+# ===== CALLBACK =====
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     help_menu.handle_callbacks(bot, call)
@@ -39,6 +39,11 @@ def handler(message):
     print("TEXT:", text)
 
 
+    # ===== КНОПКИ (через menu.py) =====
+    if menu.handle_buttons(bot, message):
+        return
+
+
     # ===== РЕСЕТ БД =====
     if text_low == "ресет":
         if message.from_user.id == ADMIN_ID:
@@ -46,16 +51,6 @@ def handler(message):
             bot.send_message(message.chat.id, "✅ База данных очищена")
         else:
             bot.send_message(message.chat.id, "❌ Нет доступа")
-        return
-
-
-    # ===== КНОПКИ =====
-    if text == "👤 Профиль":
-        profile.show_profile(bot, message)
-        return
-
-    if text == "🎁 Бонус":
-        economy.get_bonus(bot, message)
         return
 
 
@@ -88,7 +83,7 @@ def handler(message):
         help_menu.send_help(bot, message.chat.id)
 
     else:
-        return  # игнор
+        return
 
 
 print("Бот запущен...")
