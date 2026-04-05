@@ -4,8 +4,6 @@ import random
 
 from config import TOKEN, ADMIN_ID
 
-import handlers.profile as profile
-import handlers.economy as economy
 import handlers.menu as menu
 import handlers.help_menu as help_menu
 
@@ -20,7 +18,7 @@ def start(msg):
     menu.send_menu(bot, msg.chat.id)
 
 
-# ===== CALLBACK =====
+# ===== CALLBACK (инлайн кнопки помощи) =====
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     help_menu.handle_callbacks(bot, call)
@@ -32,13 +30,12 @@ def handler(message):
     if not message.text:
         return
 
-    text = message.text
-    text_low = text.lower()
+    text_low = message.text.lower()
 
-    print("TEXT:", text)
+    print("TEXT:", message.text)
 
 
-    # ===== СНАЧАЛА КНОПКИ =====
+    # ===== ВСЕ КНОПКИ =====
     if menu.handle_buttons(bot, message):
         return
 
@@ -68,21 +65,8 @@ def handler(message):
         text_low = text_low.replace("фуня ", "", 1)
 
 
-    # ===== КОМАНДЫ =====
-    if "профиль" in text_low:
-        profile.show_profile(bot, message)
-
-    elif "баланс" in text_low:
-        economy.show_balance(bot, message)
-
-    elif "бонус" in text_low:
-        economy.get_bonus(bot, message)
-
-    elif "помощь" in text_low:
-        help_menu.send_help(bot, message.chat.id)
-
-    else:
-        return
+    # ===== ИГНОР =====
+    return
 
 
 print("Бот запущен...")
