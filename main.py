@@ -2,7 +2,7 @@ import telebot
 import time
 
 from config import TOKEN
-import handlers.router as router
+from handlers import router
 
 bot = telebot.TeleBot(TOKEN)
 
