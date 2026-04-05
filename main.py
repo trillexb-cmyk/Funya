@@ -36,7 +36,7 @@ def handler(message):
     text = message.text
     text_low = text.lower()
 
-    print("TEXT:", text)  # DEBUG
+    print("TEXT:", text)
 
 
     # ===== РЕСЕТ БД =====
@@ -49,7 +49,7 @@ def handler(message):
         return
 
 
-    # ===== КНОПКИ (ЖЁСТКИЙ ФИКС) =====
+    # ===== КНОПКИ =====
     if text == "👤 Профиль":
         profile.show_profile(bot, message)
         return
@@ -59,12 +59,7 @@ def handler(message):
         return
 
 
-    # ===== УБИРАЕМ "ФУНЯ" =====
-    if text_low.startswith("фуня"):
-        text_low = text_low.replace("фуня", "").strip()
-
-
-    # ===== ПРОСТО "ФУНЯ" =====
+    # ===== ФУНЯ =====
     if text_low == "фуня":
         phrases = [
             "👀 Я тут",
@@ -74,6 +69,9 @@ def handler(message):
         ]
         bot.send_message(message.chat.id, random.choice(phrases))
         return
+
+    if text_low.startswith("фуня "):
+        text_low = text_low.replace("фуня ", "", 1)
 
 
     # ===== КОМАНДЫ =====
