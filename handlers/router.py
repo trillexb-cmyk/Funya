@@ -12,12 +12,10 @@ from modules import funya
 from modules import ban
 
 
-# ===== СТАРТ =====
 def start(bot, message):
     menu.send_menu(bot, message.chat.id)
 
 
-# ===== ОСНОВНОЙ РОУТЕР =====
 def handle(bot, message):
     if not message.text:
         return
@@ -28,26 +26,26 @@ def handle(bot, message):
     print("MSG:", text_low)
 
 
-    # ===== КНОПКИ (ЛС) =====
+    # ===== КНОПКИ =====
     if message.chat.type == "private":
         if menu.handle_buttons(bot, message):
             return
 
 
-    # ===== БАН (ТОЛЬКО В ГРУППЕ) =====
+    # ===== БАН =====
     if text_low == "бан":
         ban.run(bot, message)
         return
 
 
-    # ===== ФУНЯ =====
+    # ===== ФУНЯ (ПЕРВАЯ) =====
     if text_low.startswith("фуня"):
         cleaned = text_low.replace("фуня", "", 1).strip()
         funya.run(bot, message, cleaned)
         return
 
 
-    # ===== КОМАНДЫ =====
+    # ===== ОБЫЧНЫЕ КОМАНДЫ =====
     if "профиль" in text_low:
         profile.run(bot, message)
 
