@@ -6,7 +6,6 @@ import threading
 from config import USE_POSTGRES
 
 
-# ===== LOCK (АНТИ-ПАДЕНИЯ) =====
 lock = threading.Lock()
 
 
@@ -18,22 +17,23 @@ else:
     conn = sqlite3.connect("funya.db", check_same_thread=False)
 
 
-# ===== УНИВЕРСАЛЬНЫЙ EXECUTE =====
+# ===== EXECUTE =====
 def execute(query, params=None, fetchone=False, fetchall=False):
-    with lock:  # 🔥 защита от потоков
+    with lock:
         try:
             cur = conn.cursor()
 
-            if params:
-                cur.execute(query, params)
-            else:
-                cur.execute(query)
+            cur.execute(query, params or ())
+
+            columns = [desc[0] for desc in cur.description] if cur.description else []
 
             if fetchone:
-                return cur.fetchone()
+                row = cur.fetchone()
+                return dict(zip(columns, row)) if row else None
 
             if fetchall:
-                return cur.fetchall()
+                rows = cur.fetchall()
+                return [dict(zip(columns, r)) for r in rows]
 
             if not USE_POSTGRES:
                 conn.commit()
@@ -46,7 +46,7 @@ def execute(query, params=None, fetchone=False, fetchall=False):
                 pass
 
 
-# ===== СОЗДАНИЕ ТАБЛИЦЫ =====
+# ===== СОЗДАНИЕ =====
 execute("""
 CREATE TABLE IF NOT EXISTS users (
     user_id BIGINT PRIMARY KEY
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS users (
 """)
 
 
-# ===== АВТО-КОЛОНКИ =====
+# ===== КОЛОНКИ =====
 def safe_column(query):
     try:
         execute(query)
@@ -110,6 +110,66 @@ def update_balance(user_id, amount):
     if USE_POSTGRES:
         execute(
             "UPDATE users SET balance = balance + %s WHERE user_id=%s",
+            (amount, user_id)
+        )
+    else:
+        execute(
+            "UPDATE users SET balance = balance + ? WHERE user_id=?",
+            (amount, user_id)
+        )
+
+
+# ===== БОНУС =====
+def get_last_bonus(user_id):
+    user = get_user(user_id)
+    return user["last_bonus"] if user else 0
+
+
+def update_last_bonus(user_id):
+    now = int(time.time())
+
+    if USE_POSTGRES:
+        execute(
+            "UPDATE users SET last_bonus=%s WHERE user_id=%s",
+            (now, user_id)
+        )
+    else:
+        execute(
+            "UPDATE users SET last_bonus=? WHERE user_id=?",
+            (now, user_id)
+        )
+
+
+# ===== ДОП =====
+def add_exp(user_id, amount):
+    if USE_POSTGRES:
+        execute(
+            "UPDATE users SET exp = exp + %s WHERE user_id=%s",
+            (amount, user_id)
+        )
+    else:
+        execute(
+            "UPDATE users SET exp = exp + ? WHERE user_id=?",
+            (amount, user_id)
+        )
+
+
+def add_message(user_id):
+    if USE_POSTGRES:
+        execute(
+            "UPDATE users SET messages = messages + 1 WHERE user_id=%s",
+            (user_id,)
+        )
+    else:
+        execute(
+            "UPDATE users SET messages = messages + 1 WHERE user_id=?",
+            (user_id,)
+        )
+
+
+# ===== РЕСЕТ =====
+def reset_db():
+    execute("DELETE FROM users")            "UPDATE users SET balance = balance + %s WHERE user_id=%s",
             (amount, user_id)
         )
     else:
