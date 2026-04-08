@@ -54,7 +54,26 @@ CREATE TABLE IF NOT EXISTS users (
     user_id BIGINT PRIMARY KEY
 )
 """)
-
+# ===== ПЕРЕВОД =====
+def transfer_balance(from_id, to_id, amount):
+    if USE_POSTGRES:
+        execute(
+            "UPDATE users SET balance = balance - %s WHERE user_id=%s",
+            (amount, from_id)
+        )
+        execute(
+            "UPDATE users SET balance = balance + %s WHERE user_id=%s",
+            (amount, to_id)
+        )
+    else:
+        execute(
+            "UPDATE users SET balance = balance - ? WHERE user_id=?",
+            (amount, from_id)
+        )
+        execute(
+            "UPDATE users SET balance = balance + ? WHERE user_id=?",
+            (amount, to_id)
+        )
 
 # ===== КОЛОНКИ =====
 def safe_column(query):
