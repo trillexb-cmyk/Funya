@@ -11,34 +11,19 @@ def run(bot, message):
         bot.send_message(message.chat.id, "Ошибка профиля")
         return
 
-    (
-        uid,
-        balance,
-        cookies,
-        clan,
-        partner,
-        last_bonus,
-        exp,
-        level,
-        reputation,
-        messages,
-        warns,
-        mute_until
-    ) = user
-
     text = (
         f"👤 Профиль\n\n"
-        f"🆔 ID: {uid}\n"
-        f"💰 Баланс: {balance}\n\n"
+        f"🆔 ID: {user['user_id']}\n"
+        f"💰 Баланс: {user['balance']}\n\n"
 
-        f"🏆 Уровень: {level}\n"
-        f"⚡ Опыт: {exp}\n\n"
+        f"🏆 Уровень: {user['level']}\n"
+        f"⚡ Опыт: {user['exp']}\n\n"
 
-        f"💬 Сообщения: {messages}\n"
-        f"⭐ Репутация: {reputation}\n\n"
+        f"💬 Сообщения: {user['messages']}\n"
+        f"⭐ Репутация: {user['reputation']}\n\n"
 
-        f"👥 Клан: {clan}\n"
-        f"💍 Партнёр: {partner if partner else 'нет'}"
+        f"👥 Клан: {user['clan']}\n"
+        f"💍 Партнёр: {user['partner'] if user['partner'] else 'нет'}"
     )
 
     bot.send_message(message.chat.id, text)
