@@ -6,6 +6,7 @@ import threading
 from config import USE_POSTGRES
 
 
+# ===== LOCK =====
 lock = threading.Lock()
 
 
@@ -25,15 +26,25 @@ def execute(query, params=None, fetchone=False, fetchall=False):
 
             cur.execute(query, params or ())
 
-            columns = [desc[0] for desc in cur.description] if cur.description else []
-
+            # ===== FETCH ONE =====
             if fetchone:
                 row = cur.fetchone()
-                return dict(zip(columns, row)) if row else None
+                if not row:
+                    return None
 
+                if cur.description:
+                    columns = [desc[0] for desc in cur.description]
+                    return dict(zip(columns, row))
+
+                return row
+
+            # ===== FETCH ALL =====
             if fetchall:
                 rows = cur.fetchall()
-                return [dict(zip(columns, r)) for r in rows]
+                if cur.description:
+                    columns = [desc[0] for desc in cur.description]
+                    return [dict(zip(columns, r)) for r in rows]
+                return rows
 
             if not USE_POSTGRES:
                 conn.commit()
@@ -46,7 +57,7 @@ def execute(query, params=None, fetchone=False, fetchall=False):
                 pass
 
 
-# ===== СОЗДАНИЕ =====
+# ===== СОЗДАНИЕ ТАБЛИЦЫ =====
 execute("""
 CREATE TABLE IF NOT EXISTS users (
     user_id BIGINT PRIMARY KEY
@@ -54,7 +65,7 @@ CREATE TABLE IF NOT EXISTS users (
 """)
 
 
-# ===== КОЛОНКИ =====
+# ===== ДОБАВЛЕНИЕ КОЛОНОК =====
 def safe_column(query):
     try:
         execute(query)
@@ -146,6 +157,30 @@ def add_exp(user_id, amount):
         execute(
             "UPDATE users SET exp = exp + %s WHERE user_id=%s",
             (amount, user_id)
+        )
+    else:
+        execute(
+            "UPDATE users SET exp = exp + ? WHERE user_id=?",
+            (amount, user_id)
+        )
+
+
+def add_message(user_id):
+    if USE_POSTGRES:
+        execute(
+            "UPDATE users SET messages = messages + 1 WHERE user_id=%s",
+            (user_id,)
+        )
+    else:
+        execute(
+            "UPDATE users SET messages = messages + 1 WHERE user_id=?",
+            (user_id,)
+        )
+
+
+# ===== РЕСЕТ БД =====
+def reset_db():
+    execute("DELETE FROM users")            (amount, user_id)
         )
     else:
         execute(
