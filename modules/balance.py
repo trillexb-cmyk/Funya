@@ -12,12 +12,10 @@ def run(bot, message):
         return
 
     balance = user["balance"]
-    cookies = user["cookies"]
 
     text = (
         f"💰 Баланс\n\n"
-        f"💵 Деньги: {balance}\n"
-        f"🍪 Печеньки: {cookies}"
+        f"💵 Деньги: {balance}"
     )
 
     bot.send_message(message.chat.id, text)
